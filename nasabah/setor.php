@@ -2,6 +2,10 @@
 /**
  * nasabah/setor.php - Informasi setor & riwayat setoran nasabah
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -22,7 +26,7 @@ if (isset($_GET['id'])) {
     mysqli_stmt_close($stmt);
 
     if ($detail) {
-        $stmt = mysqli_prepare($con, "SELECT d.*, j.nama, j.kategori FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id WHERE d.setoran_id = ?");
+        $stmt = mysqli_prepare($con, "SELECT d.*, j.kategori FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id WHERE d.setoran_id = ?");
         mysqli_stmt_bind_param($stmt, 'i', $sid);
         mysqli_stmt_execute($stmt);
         $res = mysqli_stmt_get_result($stmt);
@@ -41,7 +45,7 @@ if (!$detail) {
     mysqli_stmt_close($stmt);
 }
 
-$harga_list = mysqli_query($con, "SELECT * FROM jenis_sampah ORDER BY kategori, nama");
+$harga_list = mysqli_query($con, "SELECT * FROM jenis_sampah ORDER BY kategori");
 
 $page_title    = $detail ? 'Detail Setoran' : 'Setor Sampah';
 $page_subtitle = $detail ? 'Rincian timbangan setoran sampah Anda.' : 'Daftar harga sampah dan riwayat setoran Anda.';
@@ -62,12 +66,11 @@ require __DIR__ . '/../includes/header.php';
         </div>
         <div class="table-responsive">
           <table class="table-custom">
-            <thead><tr><th>Jenis</th><th>Kategori</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Subtotal</th></tr></thead>
+            <thead><tr><th>Kategori</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Subtotal</th></tr></thead>
             <tbody>
               <?php foreach ($detail_items as $it): ?>
                 <tr>
-                  <td class="table-product-name"><?= e($it['nama']) ?></td>
-                  <td><?= e($it['kategori']) ?></td>
+                  <td class="table-product-name"><?= e($it['kategori']) ?></td>
                   <td><?= e(kg($it['berat_kg'])) ?></td>
                   <td><?= e(rupiah($it['harga_per_kg'])) ?></td>
                   <td class="table-amount text-end"><?= e(rupiah($it['subtotal'])) ?></td>
@@ -97,7 +100,7 @@ require __DIR__ . '/../includes/header.php';
       <div class="card">
         <div class="card-header"><h2 class="card-title">Cara Menyetor Sampah</h2></div>
         <ul class="clean-list">
-          <li class="clean-list-item"><i class="bi bi-1-circle-fill"></i><div>Pilah sampah anorganik yang masih bernilai (plastik, kertas, kaleng, kaca, logam).</div></li>
+          <li class="clean-list-item"><i class="bi bi-1-circle-fill"></i><div>Pilah sampah (organik, anorganik, B3, residu)</div></li>
           <li class="clean-list-item"><i class="bi bi-2-circle-fill"></i><div>Bawa ke kantor Bank Sampah atau ajukan <a href="jemput.php">penjemputan</a>.</div></li>
           <li class="clean-list-item"><i class="bi bi-3-circle-fill"></i><div>Petugas akan menimbang dan mencatat setoran Anda.</div></li>
           <li class="clean-list-item"><i class="bi bi-4-circle-fill"></i><div>Saldo otomatis bertambah dan dapat dicairkan.</div></li>
@@ -108,13 +111,12 @@ require __DIR__ . '/../includes/header.php';
         <div class="table-header-control"><h2 class="card-title mb-0">Daftar Harga</h2></div>
         <div class="table-responsive">
           <table class="table-custom">
-            <thead><tr><th>Jenis</th><th>Kategori</th><th class="text-end">Harga/kg</th></tr></thead>
+            <thead><tr><th>Kategori</th><th>Harga/kg</th></tr></thead>
             <tbody>
               <?php while ($h = mysqli_fetch_assoc($harga_list)): ?>
                 <tr>
-                  <td class="table-product-name"><?= e($h['nama']) ?></td>
-                  <td><?= e($h['kategori']) ?></td>
-                  <td class="table-amount text-end"><?= e(rupiah($h['harga_per_kg'])) ?></td>
+                  <td class="table-product-name"><?= e($h['kategori']) ?></td>
+                  <td><?= e(rupiah($h['harga_per_kg'])) ?></td>
                 </tr>
               <?php endwhile; ?>
             </tbody>

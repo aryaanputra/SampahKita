@@ -2,6 +2,10 @@
 /**
  * ketua/laporan.php - Laporan & rekapitulasi
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -12,6 +16,7 @@ $from = $_GET['from'] ?? date('Y-m-01');
 $to   = $_GET['to'] ?? date('Y-m-d');
 $from_esc = mysqli_real_escape_string($con, $from);
 $to_esc   = mysqli_real_escape_string($con, $to . ' 23:59:59');
+$to_date_esc = mysqli_real_escape_string($con, $to);
 
 // Ringkasan
 $r = mysqli_query($con, "SELECT COALESCE(SUM(total_nilai),0) v, COUNT(*) c FROM setoran WHERE tanggal BETWEEN '$from_esc' AND '$to_esc'");
@@ -23,13 +28,18 @@ $sum_berat = $r ? (float) mysqli_fetch_assoc($r)['v'] : 0;
 $r = mysqli_query($con, "SELECT COALESCE(SUM(nominal),0) v, COUNT(*) c FROM pencairan WHERE tanggal BETWEEN '$from_esc' AND '$to_esc' AND status = 'selesai'");
 $sum_cair = $r ? mysqli_fetch_assoc($r) : ['v' => 0, 'c' => 0];
 
-$r = mysqli_query($con, "SELECT COALESCE(SUM(total),0) v, COALESCE(SUM(berat_kg),0) b FROM penjualan_offtaker WHERE tanggal BETWEEN '$from' AND '$to'");
+$r = mysqli_query($con, "SELECT COALESCE(SUM(total),0) v, COALESCE(SUM(berat_kg),0) b FROM penjualan_offtaker WHERE tanggal BETWEEN '$from_esc' AND '$to_date_esc'");
 $sum_off = $r ? mysqli_fetch_assoc($r) : ['v' => 0, 'b' => 0];
 
 // Rekap per jenis
+$jenis_labels = []; $jenis_data = [];
+$res = mysqli_query($con, "SELECT j.kategori, SUM(d.berat_kg) berat FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id GROUP BY j.kategori ORDER BY berat DESC LIMIT 6");
+if ($res) { while ($r = mysqli_fetch_assoc($res)) { $jenis_labels[] = $r['kategori']; $jenis_data[] = (float) $r['berat']; } }
+
+// Rekap per jenis (dalam periode laporan)
 $per_jenis = [];
-$res = mysqli_query($con, "SELECT j.nama, j.kategori, SUM(d.berat_kg) berat, SUM(d.subtotal) nilai FROM detail_setoran d JOIN setoran s ON s.id = d.setoran_id JOIN jenis_sampah j ON j.id = d.jenis_id WHERE s.tanggal BETWEEN '$from_esc' AND '$to_esc' GROUP BY j.id ORDER BY nilai DESC");
-if ($res) { while ($x = mysqli_fetch_assoc($res)) { $per_jenis[] = $x; } }
+$res = mysqli_query($con, "SELECT j.kategori, SUM(d.berat_kg) berat, SUM(d.subtotal) nilai FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id JOIN setoran s ON s.id = d.setoran_id WHERE s.tanggal BETWEEN '$from_esc' AND '$to_esc' GROUP BY j.kategori ORDER BY berat DESC");
+if ($res) { while ($r = mysqli_fetch_assoc($res)) { $per_jenis[] = $r; } }
 
 // Rekap per nasabah
 $per_nasabah = [];
@@ -38,7 +48,7 @@ if ($res) { while ($x = mysqli_fetch_assoc($res)) { $per_nasabah[] = $x; } }
 
 // Penjualan offtaker
 $per_off = [];
-$res = mysqli_query($con, "SELECT o.*, j.nama AS jenis FROM penjualan_offtaker o JOIN jenis_sampah j ON j.id = o.jenis_id WHERE o.tanggal BETWEEN '$from' AND '$to' ORDER BY o.tanggal DESC");
+$res = mysqli_query($con, "SELECT o.*, j.kategori AS jenis FROM penjualan_offtaker o JOIN jenis_sampah j ON j.id = o.jenis_id WHERE o.tanggal BETWEEN '$from_esc' AND '$to_date_esc' ORDER BY o.tanggal DESC");
 if ($res) { while ($x = mysqli_fetch_assoc($res)) { $per_off[] = $x; } }
 
 $page_title    = 'Laporan';
@@ -88,12 +98,12 @@ require __DIR__ . '/../includes/header.php';
       <div class="table-header-control"><h2 class="card-title mb-0">Rekap per Jenis Sampah</h2></div>
       <div class="table-responsive">
         <table class="table-custom">
-          <thead><tr><th>Jenis</th><th>Kategori</th><th>Berat</th><th class="text-end">Nilai</th></tr></thead>
+          <thead><tr><th>Kategori</th><th>Berat</th><th class="text-end">Nilai</th></tr></thead>
           <tbody>
             <?php if (empty($per_jenis)): ?>
-              <tr><td colspan="4" class="text-center text-muted-green py-3">Tidak ada data.</td></tr>
+              <tr><td colspan="3" class="text-center text-muted-green py-3">Tidak ada data.</td></tr>
             <?php else: foreach ($per_jenis as $x): ?>
-              <tr><td class="table-product-name"><?= e($x['nama']) ?></td><td><?= e($x['kategori']) ?></td>
+              <tr><td class="table-product-name"><?= e($x['kategori']) ?></td>
                 <td><?= e(kg($x['berat'])) ?></td><td class="table-amount text-end"><?= e(rupiah($x['nilai'])) ?></td></tr>
             <?php endforeach; endif; ?>
           </tbody>
@@ -126,7 +136,7 @@ require __DIR__ . '/../includes/header.php';
       <div class="table-header-control"><h2 class="card-title mb-0">Penjualan ke Offtaker</h2></div>
       <div class="table-responsive">
         <table class="table-custom">
-          <thead><tr><th>Tanggal</th><th>Offtaker</th><th>Jenis</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Total</th></tr></thead>
+          <thead><tr><th>Tanggal</th><th>Offtaker</th><th>Kategori</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Total</th></tr></thead>
           <tbody>
             <?php if (empty($per_off)): ?>
               <tr><td colspan="6" class="text-center text-muted-green py-3">Tidak ada data.</td></tr>

@@ -2,6 +2,10 @@
 /**
  * pengurus/penjemputan.php - Kelola penjemputan sampah
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -75,7 +79,7 @@ require __DIR__ . '/../includes/header.php';
   </div>
   <div class="table-responsive">
     <table class="table-custom">
-      <thead><tr><th>#</th><th>Nasabah</th><th>Jadwal</th><th>Alamat / Estimasi</th><th>Status</th><th class="text-center">Aksi</th></tr></thead>
+      <thead><tr><th>#</th><th>Nasabah</th><th>Jadwal</th><th>Alamat / Catatan</th><th>Status</th><th class="text-center">Aksi</th></tr></thead>
       <tbody>
         <?php if (empty($rows)): ?>
           <tr><td colspan="6" class="text-center text-muted-green py-4">Tidak ada data.</td></tr>
@@ -87,7 +91,7 @@ require __DIR__ . '/../includes/header.php';
               <div class="table-user-sub"><?= e($r['no_hp'] ?: '-') ?></div>
             </td>
             <td><?= e(tanggal_waktu_id($r['jadwal'])) ?></td>
-            <td><?= e(potong_teks($r['alamat'], 40)) ?><div class="table-user-sub"><?= e($r['estimasi'] ?: '-') ?></div></td>
+            <td><?= e(potong_teks($r['alamat'], 40)) ?><div class="table-user-sub"><?= e($r['catatan'] ?: '-') ?></div></td>
             <td><?= badge_jemput($r['status']) ?></td>
             <td class="text-center">
               <div class="table-actions justify-content-center">

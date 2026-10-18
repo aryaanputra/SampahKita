@@ -2,6 +2,10 @@
 /**
  * ketua/persetujuan.php - Persetujuan pencairan saldo
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 

@@ -2,6 +2,11 @@
 /**
  * pengurus/jenis_sampah.php - Kelola jenis sampah & harga
  */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -16,21 +21,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($aksi === 'simpan') {
         $id = (int) ($_POST['id'] ?? 0);
-        $nama = trim($_POST['nama'] ?? '');
         $kategori = trim($_POST['kategori'] ?? '');
         $harga = (float) ($_POST['harga_per_kg'] ?? 0);
 
-        if ($nama === '') { $errors[] = 'Nama jenis sampah wajib diisi.'; }
         if ($kategori === '') { $errors[] = 'Kategori wajib diisi.'; }
         if ($harga < 0) { $errors[] = 'Harga tidak boleh negatif.'; }
 
         if (empty($errors)) {
             if ($id > 0) {
-                $stmt = mysqli_prepare($con, "UPDATE jenis_sampah SET nama = ?, kategori = ?, harga_per_kg = ? WHERE id = ?");
-                mysqli_stmt_bind_param($stmt, 'ssdi', $nama, $kategori, $harga, $id);
+                $stmt = mysqli_prepare($con, "UPDATE jenis_sampah SET kategori = ?, harga_per_kg = ? WHERE id = ?");
+                mysqli_stmt_bind_param($stmt, 'sdi', $kategori, $harga, $id);
             } else {
-                $stmt = mysqli_prepare($con, "INSERT INTO jenis_sampah (nama, kategori, harga_per_kg) VALUES (?, ?, ?)");
-                mysqli_stmt_bind_param($stmt, 'ssd', $nama, $kategori, $harga);
+                $stmt = mysqli_prepare($con, "INSERT INTO jenis_sampah (kategori, harga_per_kg) VALUES (?, ?)");
+                mysqli_stmt_bind_param($stmt, 'sd', $kategori, $harga);
             }
             if (mysqli_stmt_execute($stmt)) {
                 set_flash('success', 'Data jenis sampah disimpan.');
@@ -58,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $rows = [];
-$res = mysqli_query($con, "SELECT j.*, COALESCE(SUM(d.berat_kg),0) terpakai FROM jenis_sampah j LEFT JOIN detail_setoran d ON d.jenis_id = j.id GROUP BY j.id ORDER BY j.kategori, j.nama");
+$res = mysqli_query($con, "SELECT j.*, COALESCE(SUM(d.berat_kg),0) terpakai FROM jenis_sampah j LEFT JOIN detail_setoran d ON d.jenis_id = j.id GROUP BY j.id ORDER BY j.kategori");
 if ($res) { while ($r = mysqli_fetch_assoc($res)) { $rows[] = $r; } }
 
 $edit = null;
@@ -92,16 +95,8 @@ require __DIR__ . '/../includes/header.php';
         <input type="hidden" name="id" value="<?= e($edit['id'] ?? 0) ?>">
 
         <div class="mb-3">
-          <label class="form-label-custom">Nama Jenis</label>
-          <input type="text" class="form-control-custom" name="nama" required value="<?= e($edit['nama'] ?? ($_POST['nama'] ?? '')) ?>" placeholder="mis. Botol Plastik PET">
-        </div>
-        <div class="mb-3">
           <label class="form-label-custom">Kategori</label>
-          <select class="form-select-custom" name="kategori" required>
-            <?php foreach (['Plastik','Kertas','Logam','Kaca','Organik','Lainnya'] as $kat): ?>
-              <option value="<?= e($kat) ?>" <?= (($edit['kategori'] ?? ($_POST['kategori'] ?? '')) === $kat) ? 'selected' : '' ?>><?= e($kat) ?></option>
-            <?php endforeach; ?>
-          </select>
+          <input type="text" class="form-control-custom" name="kategori" min="0" step="100" required value="<?= e($edit['kategori'] ?? ($_POST['kategori'] ?? '')) ?>">
         </div>
         <div class="mb-3">
           <label class="form-label-custom">Harga per kg (Rp)</label>
@@ -124,21 +119,19 @@ require __DIR__ . '/../includes/header.php';
       </div>
       <div class="table-responsive">
         <table class="table-custom">
-          <thead><tr><th>Jenis</th><th>Kategori</th><th>Harga/kg</th><th>Stok</th><th>Terpakai</th><th class="text-center">Aksi</th></tr></thead>
+          <thead><tr><th>Kategori</th><th>Harga/kg</th><th>Terpakai</th><th class="text-center">Aksi</th></tr></thead>
           <tbody>
             <?php if (empty($rows)): ?>
-              <tr><td colspan="6" class="text-center text-muted-green py-4">Belum ada jenis sampah.</td></tr>
+              <tr><td colspan="4" class="text-center text-muted-green py-4">Belum ada jenis sampah.</td></tr>
             <?php else: foreach ($rows as $r): ?>
               <tr>
-                <td class="table-product-name"><?= e($r['nama']) ?></td>
-                <td><?= e($r['kategori']) ?></td>
+                <td class="table-product-name"><?= e($r['kategori']) ?></td>
                 <td class="table-amount"><?= e(rupiah($r['harga_per_kg'])) ?></td>
-                <td><?= e(kg($r['stok_kg'])) ?></td>
                 <td><?= e(kg($r['terpakai'])) ?></td>
                 <td class="text-center">
                   <div class="table-actions justify-content-center">
                     <a href="jenis_sampah.php?edit=<?= e($r['id']) ?>" class="table-btn-action" title="Edit"><i class="bi bi-pencil"></i></a>
-                    <form method="POST" action="jenis_sampah.php" class="d-inline" data-confirm="Hapus jenis &quot;<?= e($r['nama']) ?>&quot;?">
+                    <form method="POST" action="jenis_sampah.php" class="d-inline" data-confirm="Hapus jenis &quot;<?= e($r['kategori']) ?>&quot;?">
                       <?= csrf_field() ?>
                       <input type="hidden" name="aksi" value="hapus">
                       <input type="hidden" name="id" value="<?= e($r['id']) ?>">

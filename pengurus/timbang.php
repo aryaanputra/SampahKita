@@ -2,6 +2,10 @@
 /**
  * pengurus/timbang.php - Timbang & catat setoran nasabah
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -13,7 +17,7 @@ $uid  = $u['id_user'];
 $errors = [];
 
 $jenis_list = [];
-$res = mysqli_query($con, "SELECT * FROM jenis_sampah ORDER BY nama ASC");
+$res = mysqli_query($con, "SELECT * FROM jenis_sampah ORDER BY kategori ASC");
 if ($res) { while ($r = mysqli_fetch_assoc($res)) { $jenis_list[] = $r; } }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -67,15 +71,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             mysqli_stmt_close($stmt);
 
             $stmt = mysqli_prepare($con, "INSERT INTO detail_setoran (setoran_id, jenis_id, berat_kg, harga_per_kg, subtotal) VALUES (?, ?, ?, ?, ?)");
-            $stmtStok = mysqli_prepare($con, "UPDATE jenis_sampah SET stok_kg = stok_kg + ? WHERE id = ?");
             foreach ($items as $it) {
                 mysqli_stmt_bind_param($stmt, 'iiddd', $setoran_id, $it['jenis_id'], $it['berat'], $it['harga'], $it['subtotal']);
                 mysqli_stmt_execute($stmt);
-                mysqli_stmt_bind_param($stmtStok, 'di', $it['berat'], $it['jenis_id']);
-                mysqli_stmt_execute($stmtStok);
             }
             mysqli_stmt_close($stmt);
-            mysqli_stmt_close($stmtStok);
 
             // Mutasi saldo (kredit) + saldo_akhir
             $prev = 0.0;
@@ -167,7 +167,7 @@ require __DIR__ . '/../includes/header.php';
                 <option value="">-- Pilih jenis --</option>
                 <?php foreach ($jenis_list as $j): ?>
                   <option value="<?= e($j['id']) ?>" data-harga="<?= e($j['harga_per_kg']) ?>" <?= $sel === (int)$j['id'] ? 'selected' : '' ?>>
-                    <?= e($j['nama']) ?> (<?= e(rupiah($j['harga_per_kg'])) ?>/kg)
+                    <?= e($j['kategori']) ?> (<?= e(rupiah($j['harga_per_kg'])) ?>/kg)
                   </option>
                 <?php endforeach; ?>
               </select>
@@ -199,7 +199,7 @@ require __DIR__ . '/../includes/header.php';
               <select class="form-select-custom" name="jenis_id[]" required>
                 <option value="">-- Pilih jenis --</option>
                 <?php foreach ($jenis_list as $j): ?>
-                  <option value="<?= e($j['id']) ?>" data-harga="<?= e($j['harga_per_kg']) ?>"><?= e($j['nama']) ?> (<?= e(rupiah($j['harga_per_kg'])) ?>/kg)</option>
+                  <option value="<?= e($j['id']) ?>" data-harga="<?= e($j['harga_per_kg']) ?>"><?= e($j['kategori']) ?> (<?= e(rupiah($j['harga_per_kg'])) ?>/kg)</option>
                 <?php endforeach; ?>
               </select>
             </div>

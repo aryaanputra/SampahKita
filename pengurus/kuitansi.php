@@ -2,6 +2,10 @@
 /**
  * pengurus/kuitansi.php - Kuitansi setoran (dapat dicetak)
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -24,7 +28,7 @@ if (!$setoran) {
     exit();
 }
 
-$stmt = mysqli_prepare($con, "SELECT d.*, j.nama, j.kategori FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id WHERE d.setoran_id = ?");
+$stmt = mysqli_prepare($con, "SELECT d.*, j.kategori FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id WHERE d.setoran_id = ?");
 mysqli_stmt_bind_param($stmt, 'i', $id);
 mysqli_stmt_execute($stmt);
 $res = mysqli_stmt_get_result($stmt);
@@ -75,12 +79,11 @@ require __DIR__ . '/../includes/header.php';
 
       <div class="table-responsive">
         <table class="table-custom">
-          <thead><tr><th>Jenis</th><th>Kategori</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Subtotal</th></tr></thead>
+          <thead><tr><th>Kategori</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Subtotal</th></tr></thead>
           <tbody>
             <?php foreach ($items as $it): ?>
               <tr>
-                <td class="table-product-name"><?= e($it['nama']) ?></td>
-                <td><?= e($it['kategori']) ?></td>
+                <td class="table-product-name"><?= e($it['kategori']) ?></td>
                 <td><?= e(kg($it['berat_kg'])) ?></td>
                 <td><?= e(rupiah($it['harga_per_kg'])) ?></td>
                 <td class="table-amount text-end"><?= e(rupiah($it['subtotal'])) ?></td>

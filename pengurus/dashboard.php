@@ -2,6 +2,11 @@
 /**
  * pengurus/dashboard.php - Ringkasan operasional Bank Sampah
  */
+
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -41,8 +46,8 @@ if ($res) { while ($r = mysqli_fetch_assoc($res)) { $chart_labels[] = $r['lbl'];
 
 // Komposisi jenis sampah (berat) untuk donut
 $jenis_labels = []; $jenis_data = [];
-$res = mysqli_query($con, "SELECT j.nama, SUM(d.berat_kg) berat FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id GROUP BY j.nama ORDER BY berat DESC LIMIT 6");
-if ($res) { while ($r = mysqli_fetch_assoc($res)) { $jenis_labels[] = $r['nama']; $jenis_data[] = (float) $r['berat']; } }
+$res = mysqli_query($con, "SELECT j.kategori, SUM(d.berat_kg) berat FROM detail_setoran d JOIN jenis_sampah j ON j.id = d.jenis_id GROUP BY j.kategori ORDER BY berat DESC LIMIT 6");
+if ($res) { while ($r = mysqli_fetch_assoc($res)) { $jenis_labels[] = $r['kategori']; $jenis_data[] = (float) $r['berat']; } }
 
 // Setoran terakhir
 $setoran_list = [];

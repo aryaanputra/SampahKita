@@ -2,6 +2,10 @@
 /**
  * pengurus/offtaker.php - Catat penjualan sampah ke offtaker
  */
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+
 $base = '../';
 $GLOBALS['base'] = $base;
 
@@ -13,7 +17,7 @@ $uid = $u['id_user'];
 $errors = [];
 
 $jenis_list = [];
-$res = mysqli_query($con, "SELECT * FROM jenis_sampah ORDER BY nama ASC");
+$res = mysqli_query($con, "SELECT * FROM jenis_sampah ORDER BY kategori ASC");
 if ($res) { while ($r = mysqli_fetch_assoc($res)) { $jenis_list[] = $r; } }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -32,31 +36,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (empty($errors)) {
         $total = $berat * $harga;
-        mysqli_begin_transaction($con);
         try {
             $stmt = mysqli_prepare($con, "INSERT INTO penjualan_offtaker (tanggal, nama_offtaker, jenis_id, berat_kg, harga, total, petugas_id) VALUES (?, ?, ?, ?, ?, ?, ?)");
             mysqli_stmt_bind_param($stmt, 'ssidddi', $tanggal, $offtaker, $jenis_id, $berat, $harga, $total, $uid);
             mysqli_stmt_execute($stmt);
             mysqli_stmt_close($stmt);
 
-            $stmt = mysqli_prepare($con, "UPDATE jenis_sampah SET stok_kg = GREATEST(0, stok_kg - ?) WHERE id = ?");
-            mysqli_stmt_bind_param($stmt, 'di', $berat, $jenis_id);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_close($stmt);
-
-            mysqli_commit($con);
             set_flash('success', 'Penjualan ke offtaker dicatat (total ' . rupiah($total) . ').');
             header('Location: offtaker.php');
             exit();
         } catch (Throwable $ex) {
-            mysqli_rollback($con);
             $errors[] = 'Gagal menyimpan data: ' . $ex->getMessage();
         }
     }
 }
 
 $rows = [];
-$res = mysqli_query($con, "SELECT o.*, j.nama AS jenis, p.name AS petugas FROM penjualan_offtaker o JOIN jenis_sampah j ON j.id = o.jenis_id LEFT JOIN users p ON p.id_user = o.petugas_id ORDER BY o.tanggal DESC");
+$res = mysqli_query($con, "SELECT o.*, j.kategori AS jenis, p.name AS petugas FROM penjualan_offtaker o JOIN jenis_sampah j ON j.id = o.jenis_id LEFT JOIN users p ON p.id_user = o.petugas_id ORDER BY o.tanggal DESC");
 if ($res) { while ($r = mysqli_fetch_assoc($res)) { $rows[] = $r; } }
 
 $total_penjualan = 0.0;
@@ -101,7 +97,7 @@ require __DIR__ . '/../includes/header.php';
           <select class="form-select-custom" name="jenis_id" required>
             <option value="">-- Pilih jenis --</option>
             <?php foreach ($jenis_list as $j): ?>
-              <option value="<?= e($j['id']) ?>" <?= ((int)($_POST['jenis_id'] ?? 0) === (int)$j['id']) ? 'selected' : '' ?>><?= e($j['nama']) ?> (stok <?= e(kg($j['stok_kg'])) ?>)</option>
+              <option value="<?= e($j['id']) ?>" <?= ((int)($_POST['jenis_id'] ?? 0) === (int)$j['id']) ? 'selected' : '' ?>><?= e($j['kategori']) ?> (<?= e(rupiah($j['harga_per_kg'])) ?>/kg)</option>
             <?php endforeach; ?>
           </select>
         </div>
@@ -125,7 +121,7 @@ require __DIR__ . '/../includes/header.php';
       </div>
       <div class="table-responsive">
         <table class="table-custom">
-          <thead><tr><th>Tanggal</th><th>Offtaker</th><th>Jenis</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Total</th></tr></thead>
+          <thead><tr><th>Tanggal</th><th>Offtaker</th><th>Kategori</th><th>Berat</th><th>Harga/kg</th><th class="text-end">Total</th></tr></thead>
           <tbody>
             <?php if (empty($rows)): ?>
               <tr><td colspan="6" class="text-center text-muted-green py-4">Belum ada penjualan.</td></tr>
