@@ -1,0 +1,308 @@
+/* =====================================================================
+   Bank Sampah Kali Laya Berseri
+   assets/css/app.css - Tambahan di atas design system Spark Admin
+   ===================================================================== */
+
+/* Helper warna (dipakai di markup template) */
+.text-muted-green {
+    color: var(--text-muted-green) !important;
+}
+
+.text-main {
+    color: var(--text-main) !important;
+}
+
+/* Badge tambahan: info */
+.badge-table.info {
+    background-color: rgba(59, 130, 246, 0.12);
+    color: #2563eb;
+}
+
+.badge-table.info::before {
+    background-color: #3b82f6;
+}
+
+/* Avatar inisial (tanpa gambar) */
+.app-avatar-initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-lg);
+    background-color: var(--brand-forest-light);
+    color: var(--brand-lime);
+    font-weight: 800;
+    font-size: 1.05rem;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.navbar-profile-img.app-avatar-initial {
+    width: 38px;
+    height: 38px;
+    font-size: 0.95rem;
+}
+
+/* Kartu statistik ringkas */
+.stat-mini {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+}
+
+.stat-mini-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: var(--radius-lg);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+    background-color: var(--brand-lime-translucent);
+    color: var(--brand-forest-medium);
+}
+
+.stat-mini-label {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--text-muted-green);
+    margin-bottom: 0.1rem;
+}
+
+.stat-mini-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-main);
+    line-height: 1.15;
+}
+
+/* Item list sederhana */
+.clean-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.clean-list-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.85rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.clean-list-item:last-child {
+    border-bottom: none;
+}
+
+/* Kartu edukasi */
+.edu-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.edu-thumb {
+    height: 140px;
+    border-radius: var(--radius-lg);
+    background: linear-gradient(135deg, var(--brand-forest-medium), var(--brand-forest-light));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--brand-lime);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+/* Total bar (kuitansi / ringkasan) */
+.total-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: var(--bs-body-bg);
+    border-radius: var(--radius-lg);
+    padding: 1rem 1.25rem;
+    font-weight: 700;
+}
+
+.total-bar .total-value {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--brand-forest-medium);
+}
+
+/* Baris item dinamis (timbang) */
+.item-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr auto auto;
+    gap: 0.75rem;
+    align-items: end;
+    padding-bottom: 0.75rem;
+    margin-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--border-light);
+}
+
+.item-row-remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 42px;
+    height: 42px;
+    border-radius: var(--radius-lg);
+    border: none;
+    font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .item-row {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .item-row .item-row-remove {
+        grid-column: span 2;
+    }
+}
+
+/* Kartu login/registrasi lebar untuk signup */
+.login-card-wide {
+    max-width: 560px;
+}
+
+/* Kuitansi cetak */
+.kuitansi-box {
+    background: #FFFFFF;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-xl);
+    padding: 2rem;
+}
+
+.kuitansi-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    border-bottom: 2px dashed var(--border-light);
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+/* Stepper status */
+.stepper {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.stepper-step {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-muted-green);
+    padding: 0.35rem 0.75rem;
+    border-radius: 50rem;
+    background-color: var(--bs-body-bg);
+}
+
+.stepper-step.done {
+    color: var(--sys-green);
+    background-color: var(--sys-green-bg);
+}
+
+.stepper-step.active {
+    color: var(--brand-forest-dark);
+    background-color: var(--brand-lime);
+}
+
+.stepper-step.fail {
+    color: var(--sys-red);
+    background-color: var(--sys-red-bg);
+}
+
+/* Tabel: kolom aksi rata kanan */
+.table-actions {
+    display: inline-flex;
+    gap: 0.35rem;
+}
+
+/* Print */
+@media print {
+
+    .sidebar-wrapper,
+    .navbar-custom,
+    .footer-custom,
+    .no-print,
+    .sidebar-overlay {
+        display: none !important;
+    }
+
+    .main-wrapper {
+        margin-left: 0 !important;
+        padding: 0 !important;
+    }
+
+    body {
+        background: #FFFFFF !important;
+    }
+
+    .card {
+        box-shadow: none !important;
+        border: 1px solid var(--border-light) !important;
+    }
+}
+
+/* =====================================================================
+   Login dengan Google
+   ===================================================================== */
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.1rem 0;
+    color: var(--text-muted-green);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+
+.login-divider::before,
+.login-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-light);
+}
+
+.btn-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    background-color: #FFFFFF;
+    color: var(--text-main);
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-google:hover {
+    background-color: #F7FAF8;
+    border-color: #D5E0DA;
+    color: var(--text-main);
+    box-shadow: var(--shadow-sm);
+}
+
+.btn-google-icon {
+    flex-shrink: 0;
+}
